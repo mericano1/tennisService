@@ -11,7 +11,7 @@ import spray.testkit.ScalatestRouteTest
 /**
  * Created by asalvadore on 07/02/15.
  */
-class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with TennisHttpService with Matchers with AkkaTestUtils {
+class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with TennisHttpService with Matchers with AkkaTestUtils with GameConstants{
   private val player1 = Player("elvis presley")
   private val player2 = Player("john paul jones")
   private val goodRequest = NewGameRequest(player1, player2)
@@ -46,6 +46,27 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
       resp.game.playerOne.points should be(15)
       resp.game.playerOne.advantage should be(false)
     }
+  }
+
+  it should "terminate the game when a winner is found" in {
+    val createResp = Post("/game", goodRequest) ~> tennisRoutes ~> check {
+      responseAs[NewGameResponse]
+    }
+    val req = UpdateScoreRequest(player1)
+
+    val game1 = TennisGame(PlayerPoints(player1, 0), PlayerPoints(player2, 0))
+    val set = TennisSet(List(game1))
+    var score = TennisScore(List(set))
+    (1 to MIN_SCORES_PER_MATCH * MIN_WIN_IN_SET * MIN_WIN_IN_GAME).foreach { idx =>
+      Put("/game/" + createResp.id, req) ~> tennisRoutes
+    }
+    Get("/game/" + createResp.id) ~> tennisRoutes ~> check {
+      status should be(StatusCodes.OK)
+      contentType should be(ContentTypes.`application/json`)
+      val resp = responseAs[MatchDetailsResponse]
+      resp.status should be (MatchStatus.Complete)
+    }
+
   }
 
   it should "return 404 when the id was not found" in {

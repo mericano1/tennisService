@@ -34,7 +34,7 @@ class InMemoryTennisDaoImpl extends TennisDao {
     }
   }
 
-  override def completeMatch(matchId: String): Unit = {
+  override def completeMatch(matchId: String): Boolean = {
     matches.get(matchId).map { element =>
       matches += matchId -> element.copy(matchStatus = MatchStatus.Complete)
       true

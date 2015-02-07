@@ -6,7 +6,7 @@ import org.scalatest.{Matchers, FlatSpec}
 /**
  * Created by asalvadore on 07/02/15.
  */
-class GameScoreCalculatorSpec extends FlatSpec with Matchers {
+class GameScoreCalculatorSpec extends FlatSpec with Matchers with GameConstants{
   val scoreUpd = new GameScoreCalculator
   val playerA = Player("a")
   val playerB = Player("b")
@@ -231,6 +231,37 @@ class GameScoreCalculatorSpec extends FlatSpec with Matchers {
     result.playerTwo.points should be(15)
     result.playerTwo.advantage should be(false)
     result.winner should be(None)
+  }
+
+  it should "declare a winner after 2 matches" in {
+    val scoresPerGame = 4
+    val gamePerSet = 5
+    val minWin = 2
+    val game1 = TennisGame(PlayerPoints(playerA, 0), PlayerPoints(playerB, 0))
+    val set = TennisSet(List(game1))
+    var score = TennisScore(List(set))
+    (1 until scoresPerGame * gamePerSet * minWin).foreach { idx =>
+      score = scoreUpd.updateScore(score, playerB, "")
+    }
+    score.winner should be(None)
+    score = scoreUpd.updateScore(score, playerB, "")
+    score.winner should be(Some(playerB))
+  }
+
+  it should "not change anything updating after there is a winner" in {
+    val game1 = TennisGame(PlayerPoints(playerA, 0), PlayerPoints(playerB, 0))
+    val set = TennisSet(List(game1))
+    var score = TennisScore(List(set))
+    (1 to MIN_SCORES_PER_MATCH * MIN_WIN_IN_SET * MIN_WIN_IN_GAME).foreach { idx =>
+      score = scoreUpd.updateScore(score, playerB, "")
+    }
+    score.winner should be(Some(playerB))
+    score.sets.size should be(2)
+
+    score = scoreUpd.updateScore(score, playerB, "")
+
+    score.winner should be(Some(playerB))
+    score.sets.size should be(2)
   }
 
 

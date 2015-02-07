@@ -44,6 +44,9 @@ trait TennisHttpService extends HttpService with PlayJsonSupport {
               val details = dao.getMatchDetails(id.toString)
               val newScores = scoreCalculator.updateScore(details.score, updScore.scoring, id.toString)
               dao.updateScore(id.toString, newScores)
+              if (newScores.winner.isDefined){
+                dao.completeMatch(id.toString)
+              }
               complete(UpdateScoreResponse(newScores.getCurrentGame))
             }
           } ~

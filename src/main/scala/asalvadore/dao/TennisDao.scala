@@ -10,7 +10,7 @@ import asalvadore.models.{MatchDetailsResponse, Player, TennisScore}
 trait TennisDao {
   def createMatch(playerOne: Player, playerTwo: Player): String
   def updateScore(matchId: String, score: TennisScore): Boolean
-  def completeMatch(matchId: String)
+  def completeMatch(matchId: String):Boolean
   def getMatchDetails(matchId: String): MatchDetailsResponse
 }
 

@@ -48,6 +48,12 @@ class TennisDaoImplSpec extends FlatSpec with Matchers {
     details.score should be(score)
   }
 
+  "completeMatch" should "change the status of the match to complete" in {
+    val id = dao.createMatch(player1, player2)
+    dao.completeMatch(id)
+    dao.getMatchDetails(id).status should be(MatchStatus.Complete)
+  }
+
 
 
 }

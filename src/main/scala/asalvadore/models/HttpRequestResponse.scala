@@ -16,10 +16,20 @@ case class PlayerPoints(player: Player, points: Int, advantage: Boolean = false)
 case class UpdateScoreRequest(scoring: Player)
 case class UpdateScoreResponse(game: TennisGame)
 
-case class TennisGame (playerOne: PlayerPoints, playerTwo: PlayerPoints, winner: Option[Player] = None)
-case class TennisSet(games: List[TennisGame], winner: Option[Player] = None)
-case class TennisScore(sets: List[TennisSet]) {
+trait Winnable {
+  def winner: Option[Player]
+  def playerOne: PlayerPoints
+  def playerTwo: PlayerPoints
+}
+case class TennisGame (playerOne: PlayerPoints, playerTwo: PlayerPoints, winner: Option[Player] = None) extends Winnable
+case class TennisSet(games: List[TennisGame], winner: Option[Player] = None) extends Winnable {
+  override def playerOne: PlayerPoints = games.last.playerOne
+  override def playerTwo: PlayerPoints = games.last.playerTwo
+}
+case class TennisScore(sets: List[TennisSet], winner: Option[Player] = None) extends Winnable {
   def getCurrentGame = this.sets.last.games.last
+  override def playerOne: PlayerPoints = getCurrentGame.playerOne
+  override def playerTwo: PlayerPoints = getCurrentGame.playerTwo
 }
 case class MatchDetailsResponse(playerOne: Player, playerTwo: Player, status: MatchStatus, durationInSec: Long, score:TennisScore)
 

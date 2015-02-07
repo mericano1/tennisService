@@ -6,14 +6,18 @@ import scala.collection.Map
 import scala.collection.immutable.Map
 
 /**
- * Created by asalvadore on 07/02/15.
+ * Updates the game scores when a player is scoring
  */
-class GameScoreCalculator {
-
-  case class ScoreUpdate(scored: PlayerPoints, opponent: PlayerPoints, winner: Option[Player] = None)
-
+class GameScoreCalculator extends GameConstants {
 
   def updateScore(score: TennisScore, player: Player, matchId: String): TennisScore = {
+    if (score.winner.isDefined) score
+    else {
+      doUpdateScore(score, player, matchId)
+    }
+  }
+
+  def doUpdateScore(score: TennisScore, player: Player, matchId: String): TennisScore = {
     val tennisSets = score.sets
     val lastSet = tennisSets.last
     if (lastSet.winner.isDefined) {
@@ -25,10 +29,9 @@ class GameScoreCalculator {
     } else {
       val updatedSet = updateSet(tennisSets.last, player, matchId)
       val updatedSets = tennisSets.updated(tennisSets.length - 1, updatedSet)
-      score.copy(sets = updatedSets)
+      score.copy(sets = updatedSets, winner = isThereAWinner(updatedSets, MIN_WIN_IN_GAME, MIN_SCORE_DIFF_IN_GAME))
     }
   }
-
 
   /**
    * Updates the set or sets one of the player as the winner of the set.
@@ -48,9 +51,11 @@ class GameScoreCalculator {
     } else {
       val updatedGame = this.updateGame(lastGame, player, matchId)
       val updatedGames = tennisGames.updated(tennisGames.length - 1, updatedGame)
-      TennisSet(updatedGames, isThereASetWinner(updatedGames))
+      TennisSet(updatedGames, isThereAWinner(updatedGames, MIN_WIN_IN_SET, MIN_SCORE_DIFF_IN_SET))
     }
   }
+
+  private case class ScoreUpdate(scored: PlayerPoints, opponent: PlayerPoints, winner: Option[Player] = None)
 
   /**
    * Updates the game points or sets one of the player as the winner.
@@ -66,21 +71,27 @@ class GameScoreCalculator {
 
   }
 
-
   /**
-   * This method uses the old rules that requires a different of 2 matches to win
+   * This method uses the old rules that requires a difference of 2 matches to win
    * @param games the list of games played in the current set
    * @return Some(winner) if there is a winner for the current set
    */
-  private def isThereASetWinner(games: List[TennisGame]): Option[Player] = {
-    if (games.last.winner.isDefined){
+  private def isThereAWinner(games: List[Winnable], minScoreToWin: Int, minDiffToWin: Int): Option[Player] = {
+    val lastGame = games.last
+    if (lastGame.winner.isDefined){
       val playerAndMatchesWon = games.groupBy(_.winner)
-        .map {case (Some(player), wonGames) => (player -> wonGames.size)}
+        .map {
+          case (Some(player), wonGames) => (player -> wonGames.size)
+          case (None, _) => return None
+      }
 
-      val (currentWinner, winnerScore) = playerAndMatchesWon.maxBy(_._2)
-      val (currentLoose, looserScore) = playerAndMatchesWon.minBy(_._2)
+      val playerOne = lastGame.playerOne.player
+      val playerTwo = lastGame.playerTwo.player
+      val playerOneScore = playerAndMatchesWon.getOrElse(playerOne, 0)
+      val playerTwoScore = playerAndMatchesWon.getOrElse(playerTwo, 0)
+      val (currentWinner, winnerScore, looserScore) = getCurrentWinnerAndLooser(playerOne, playerTwo, playerOneScore, playerTwoScore)
 
-      if (winnerScore >= 5 && (winnerScore - looserScore) >= 2){
+      if (winnerScore >= minScoreToWin && (winnerScore - looserScore) >= minDiffToWin){
         Some(currentWinner)
       } else {
         None
@@ -88,6 +99,14 @@ class GameScoreCalculator {
     } else {
       None
     }
+  }
+
+
+  def getCurrentWinnerAndLooser(playerOne: Player, playerTwo: Player, playerOneScore: Int, playerTwoScore: Int): (Player, Int, Int) = {
+    if (playerOneScore > playerTwoScore)
+      (playerOne, playerOneScore, playerTwoScore)
+    else
+      (playerTwo, playerTwoScore, playerOneScore)
   }
 
   private def incrementPoints(toIncrement: PlayerPoints, opponent: PlayerPoints): ScoreUpdate = {
