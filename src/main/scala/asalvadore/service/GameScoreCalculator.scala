@@ -75,7 +75,8 @@ class GameScoreCalculator {
   private def isThereASetWinner(games: List[TennisGame]): Option[Player] = {
     if (games.last.winner.isDefined){
       val playerAndMatchesWon = games.groupBy(_.winner)
-        .map { case (Some(player), wonGames) => (player -> wonGames.size)}
+        .map {case (Some(player), wonGames) => (player -> wonGames.size)}
+
       val (currentWinner, winnerScore) = playerAndMatchesWon.maxBy(_._2)
       val (currentLoose, looserScore) = playerAndMatchesWon.minBy(_._2)
 

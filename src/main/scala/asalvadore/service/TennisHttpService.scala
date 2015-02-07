@@ -42,14 +42,9 @@ trait TennisHttpService extends HttpService with PlayJsonSupport {
           put {
             entity(as[UpdateScoreRequest]) { updScore =>
               val details = dao.getMatchDetails(id.toString)
-              val tennisSets = details.score.sets
-              val tennisGames = tennisSets.last.games
-              val updatedGame = scoreCalculator.updateGame(tennisGames.last, updScore.scoring, id.toString)
-              val updatedGames = tennisGames.updated(tennisGames.length - 1, updatedGame)
-              val updatedSets = tennisSets.updated(tennisSets.length - 1, TennisSet(updatedGames))
-              val newScores = details.score.copy(sets = updatedSets)
+              val newScores = scoreCalculator.updateScore(details.score, updScore.scoring, id.toString)
               dao.updateScore(id.toString, newScores)
-              complete(UpdateScoreResponse(updatedGame))
+              complete(UpdateScoreResponse(newScores.getCurrentGame))
             }
           } ~
             get {

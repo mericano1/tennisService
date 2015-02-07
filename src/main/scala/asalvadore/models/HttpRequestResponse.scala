@@ -18,9 +18,10 @@ case class UpdateScoreResponse(game: TennisGame)
 
 case class TennisGame (playerOne: PlayerPoints, playerTwo: PlayerPoints, winner: Option[Player] = None)
 case class TennisSet(games: List[TennisGame], winner: Option[Player] = None)
-case class TennisScore(sets: List[TennisSet])
+case class TennisScore(sets: List[TennisSet]) {
+  def getCurrentGame = this.sets.last.games.last
+}
 case class MatchDetailsResponse(playerOne: Player, playerTwo: Player, status: MatchStatus, durationInSec: Long, score:TennisScore)
-
 
 
 
