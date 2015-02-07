@@ -101,7 +101,7 @@ You should get back a response like the following (current game):
           },
           "points": 0,
           "advantage": false
-        }
+        }gith
       }
     }
     
