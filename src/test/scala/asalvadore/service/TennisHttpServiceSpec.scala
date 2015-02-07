@@ -69,15 +69,15 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
       contentType should be(ContentTypes.`application/json`)
       val resp = responseAs[MatchStatusResponse]
       resp.players should be(goodRequest.players)
-      resp.score should be(TennisScore(List(
+      resp.details.score should be(TennisScore(List(
         TennisSet(List(
           TennisGame(List(
             PlayerPoints(player1, 15, false),
             PlayerPoints(player2, 0, false)))
         )))
       ))
-      resp.status should be(MatchStatus.Ongoing)
-      resp.durationInSec should be >= 0L
+      resp.details.status should be(MatchStatus.Ongoing)
+      resp.details.durationInSec should be >= 0L
     }
   }
 

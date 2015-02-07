@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class TennisDaoImplSpec extends FlatSpec with Matchers {
   private val player1 = Player("elvis presley")
   private val player2 = Player("john paul jones")
-  private val dao = new TennisDaoImpl
+  private val dao = new InMemoryTennisDaoImpl
 
   "createMatch" should "store a new match" in {
     val id = dao.createMatch(List(player1, player2))
