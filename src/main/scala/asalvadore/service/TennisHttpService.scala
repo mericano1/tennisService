@@ -16,9 +16,16 @@ trait TennisHttpService extends HttpService with PlayJsonSupport {
 
   implicit val timeout: Timeout
 
+
   val tennisRoutes = {
     pathPrefix("game") {
       post {
+        complete(StatusCodes.BadRequest, "Not yet implemented")
+      } ~
+      put {
+        complete(StatusCodes.BadRequest, "Not yet implemented")
+      } ~
+      get {
         complete(StatusCodes.BadRequest, "Not yet implemented")
       }
     }

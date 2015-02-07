@@ -19,7 +19,8 @@ case class UpdateScoreResponse(points: PlayerPoints)
 case class TennisGame (points:List[PlayerPoints])
 case class TennisSet(games: List[TennisGame])
 case class TennisScore(sets: List[TennisSet])
-case class MatchStatusResponse(players: List[Player], status: MatchStatus, durationInSec: Long, score:TennisScore)
+case class MatchDetails(status: MatchStatus, durationInSec: Long, score:TennisScore)
+case class MatchStatusResponse(players: List[Player], details: MatchDetails)
 
 
 
@@ -51,6 +52,9 @@ object TennisSet{
 }
 object TennisScore{
   implicit val format = Json.format[TennisScore]
+}
+object MatchDetails{
+  implicit val format = Json.format[MatchDetails]
 }
 object MatchStatusResponse{
   implicit val format = Json.format[MatchStatusResponse]
