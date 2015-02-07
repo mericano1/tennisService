@@ -12,21 +12,21 @@ class TennisDaoImplSpec extends FlatSpec with Matchers {
   private val dao = new InMemoryTennisDaoImpl
 
   "createMatch" should "store a new match" in {
-    val id = dao.createMatch(List(player1, player2))
+    val id = dao.createMatch(player1, player2)
     id should not be (null)
     id.trim should not be("")
   }
 
 
   "updateScore and getMatchDetails" should "change the score for a match" in {
-    val id = dao.createMatch(List(player1, player2))
+    val id = dao.createMatch(player1, player2)
 
     val prevScore = TennisScore(List(
       TennisSet(List(
-        TennisGame(List(
+        TennisGame(
           PlayerPoints(player1, 0, false),
           PlayerPoints(player2, 0, false))
-        ))
+        )
       ))
     )
 
@@ -34,10 +34,10 @@ class TennisDaoImplSpec extends FlatSpec with Matchers {
 
     val score = TennisScore(List(
       TennisSet(List(
-        TennisGame(List(
+        TennisGame(
           PlayerPoints(player1, 15, false),
           PlayerPoints(player2, 0, false))
-        ))
+        )
       ))
     )
 

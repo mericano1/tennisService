@@ -11,15 +11,15 @@ import org.joda.time.{Seconds, DateTime}
  */
 class InMemoryTennisDaoImpl extends TennisDao {
 
-  case class Match(players: List[Player], matchScore: TennisScore, startTime: DateTime, matchStatus: MatchStatus = MatchStatus.Ongoing)
+  case class Match(playerOne: Player, playerTwo: Player, matchScore: TennisScore, startTime: DateTime, matchStatus: MatchStatus = MatchStatus.Ongoing)
 
   private var matches = scala.collection.mutable.Map[String, Match]()
 
-  override def createMatch(players: List[Player]): String = {
+  override def createMatch(playerOne: Player, playerTwo: Player): String = {
     val id = UUID.randomUUID().toString
-    matches += id -> Match(players, TennisScore(List(
+    matches += id -> Match(playerOne, playerTwo, TennisScore(List(
       TennisSet(List(
-        TennisGame(players.map(player => PlayerPoints(player, 0, false)).toList)
+        TennisGame(PlayerPoints(playerOne, 0), PlayerPoints(playerTwo, 0))
       ))
     )), DateTime.now())
     id
@@ -43,9 +43,14 @@ class InMemoryTennisDaoImpl extends TennisDao {
     }
   }
 
-  override def getMatchDetails(matchId: String): MatchDetails = {
+  override def getMatchDetails(matchId: String): MatchDetailsResponse = {
     matches.get(matchId).map { element =>
-      MatchDetails(element.matchStatus, Seconds.secondsBetween(element.startTime, DateTime.now()).getSeconds.toLong, element.matchScore)
+      MatchDetailsResponse(
+        element.playerOne,
+        element.playerTwo,
+        element.matchStatus,
+        Seconds.secondsBetween(element.startTime, DateTime.now()).getSeconds.toLong,
+        element.matchScore)
     }.getOrElse {
       throw new MatchNotFoundException(matchId)
     }

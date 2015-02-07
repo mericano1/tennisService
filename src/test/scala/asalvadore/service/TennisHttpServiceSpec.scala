@@ -1,5 +1,8 @@
 package asalvadore.service
 
+import java.util.UUID
+
+import asalvadore.dao.{InMemoryTennisDaoImpl, TennisDao}
 import asalvadore.models._
 import org.scalatest.{FlatSpec, Matchers}
 import spray.http.{ContentTypes, StatusCodes}
@@ -11,7 +14,10 @@ import spray.testkit.ScalatestRouteTest
 class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with TennisHttpService with Matchers with AkkaTestUtils {
   private val player1 = Player("elvis presley")
   private val player2 = Player("john paul jones")
-  private val goodRequest = NewGameRequest(List(player1, player2))
+  private val goodRequest = NewGameRequest(player1, player2)
+
+  override val dao: TennisDao = new InMemoryTennisDaoImpl
+  val randomId = UUID.randomUUID().toString
 
   "POST to /game" should "create a new match and return the id" in {
     Post("/game", goodRequest) ~> tennisRoutes ~> check {
@@ -23,7 +29,7 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
   }
 
   it should "return a bad request message when the request format is incorrect" in {
-    Post("/game", "hi there") ~> tennisRoutes ~> check {
+    Post("/game", "hi there") ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.BadRequest)
     }
   }
@@ -37,21 +43,30 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
       status should be(StatusCodes.OK)
       contentType should be(ContentTypes.`application/json`)
       val resp = responseAs[UpdateScoreResponse]
-      resp.points.player.name should be(player1.name)
-      resp.points.points should be(15)
-      resp.points.advantage should be(false)
+      resp.game.playerOne.points should be(15)
+      resp.game.playerOne.advantage should be(false)
     }
   }
 
   it should "return 404 when the id was not found" in {
     val req = UpdateScoreRequest(player1)
-    Put("/game/12345", req) ~> tennisRoutes ~> check {
+    Put("/game/" + randomId, req) ~> sealRoute(tennisRoutes) ~> check {
+      status should be(StatusCodes.NotFound)
+    }
+  }
+
+  it should "return 404 when the player was not found" in {
+    val createResp = Post("/game", goodRequest) ~> tennisRoutes ~> check {
+      responseAs[NewGameResponse]
+    }
+    val req = UpdateScoreRequest(Player("random name"))
+    Put("/game/" + createResp.id, req) ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.NotFound)
     }
   }
 
   it should "return 400 for a bad request format" in {
-    Put("/game/12345", "hello") ~> tennisRoutes ~> check {
+    Put("/game/" + randomId, "hello") ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.BadRequest)
     }
   }
@@ -67,26 +82,25 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
     Get("/game/" + createResp.id) ~> tennisRoutes ~> check {
       status should be(StatusCodes.OK)
       contentType should be(ContentTypes.`application/json`)
-      val resp = responseAs[MatchStatusResponse]
-      resp.players should be(goodRequest.players)
-      resp.details.score should be(TennisScore(List(
+      val resp = responseAs[MatchDetailsResponse]
+      resp.playerOne should be(goodRequest.playerOne)
+      resp.playerTwo should be(goodRequest.playerTwo)
+      resp.score should be(TennisScore(List(
         TennisSet(List(
-          TennisGame(List(
+          TennisGame(
             PlayerPoints(player1, 15, false),
             PlayerPoints(player2, 0, false)))
-        )))
+        ))
       ))
-      resp.details.status should be(MatchStatus.Ongoing)
-      resp.details.durationInSec should be >= 0L
+      resp.status should be(MatchStatus.Ongoing)
+      resp.durationInSec should be >= 0L
     }
   }
 
 
   it should "return 404 when the id was not found" in {
-    Get("/game/12345") ~> tennisRoutes ~> check {
+    Get("/game/" + randomId) ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.NotFound)
     }
   }
-
-
 }

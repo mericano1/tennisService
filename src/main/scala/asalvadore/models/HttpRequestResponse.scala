@@ -9,18 +9,17 @@ import play.api.libs.json._
  */
 case class Player(name: String)
 
-case class NewGameRequest (players: List[Player])
+case class NewGameRequest (playerOne: Player, playerTwo: Player)
 case class NewGameResponse (id: String)
 
-case class PlayerPoints(player: Player, points: Int, advantage: Boolean)
-case class UpdateScoreRequest(winningPlayer: Player)
-case class UpdateScoreResponse(points: PlayerPoints)
+case class PlayerPoints(player: Player, points: Int, advantage: Boolean = false)
+case class UpdateScoreRequest(scoring: Player)
+case class UpdateScoreResponse(game: TennisGame)
 
-case class TennisGame (points:List[PlayerPoints])
-case class TennisSet(games: List[TennisGame])
+case class TennisGame (playerOne: PlayerPoints, playerTwo: PlayerPoints, winner: Option[Player] = None)
+case class TennisSet(games: List[TennisGame], winner: Option[Player] = None)
 case class TennisScore(sets: List[TennisSet])
-case class MatchDetails(status: MatchStatus, durationInSec: Long, score:TennisScore)
-case class MatchStatusResponse(players: List[Player], details: MatchDetails)
+case class MatchDetailsResponse(playerOne: Player, playerTwo: Player, status: MatchStatus, durationInSec: Long, score:TennisScore)
 
 
 
@@ -41,11 +40,18 @@ object UpdateScoreRequest{
 object PlayerPoints{
   implicit val format = Json.format[PlayerPoints]
 }
-object UpdateScoreResponse{
-  implicit val format = Json.format[UpdateScoreResponse]
-}
 object TennisGame{
   implicit val format = Json.format[TennisGame]
+
+  def start(playerOne: Player, playerTwo: Player) = {
+    TennisGame(
+      PlayerPoints(playerOne, 0),
+      PlayerPoints(playerTwo, 0)
+    )
+  }
+}
+object UpdateScoreResponse{
+  implicit val format = Json.format[UpdateScoreResponse]
 }
 object TennisSet{
   implicit val format = Json.format[TennisSet]
@@ -53,11 +59,8 @@ object TennisSet{
 object TennisScore{
   implicit val format = Json.format[TennisScore]
 }
-object MatchDetails{
-  implicit val format = Json.format[MatchDetails]
-}
-object MatchStatusResponse{
-  implicit val format = Json.format[MatchStatusResponse]
+object MatchDetailsResponse{
+  implicit val format = Json.format[MatchDetailsResponse]
 }
 
 object MatchStatus extends Enumeration {
