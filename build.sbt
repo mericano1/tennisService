@@ -23,6 +23,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.play" %% "play-json" % "2.3.2",
+    "org.scalatest" %% "scalatest" % "2.2.1" % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test"
   )
 }
