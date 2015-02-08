@@ -39,7 +39,7 @@ trait TennisHttpService extends HttpService with PlayJsonSupport {
         }
       } ~
         path(JavaUUID) { id =>
-          put {
+          post {
             entity(as[UpdateScoreRequest]) { updScore =>
               val details = dao.getMatchDetails(id.toString)
               val newScores = scoreCalculator.updateScore(details.score, updScore.scoring, id.toString)

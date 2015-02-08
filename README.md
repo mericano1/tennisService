@@ -81,7 +81,7 @@ Example response:
 - Update the score:
 
     
-    `curl -XPUT http://127.0.0.1:8080/game/c15e7cae-ef7e-43de-861d-c05351705218 -d '{"scoring" : { "name" : "Elvis"}}'`
+    `curl -XPOST http://127.0.0.1:8080/game/c15e7cae-ef7e-43de-861d-c05351705218 -d '{"scoring" : { "name" : "Elvis"}}'`
     
     
 You should get back a response like the following (current game):

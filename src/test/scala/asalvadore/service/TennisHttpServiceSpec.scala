@@ -34,12 +34,12 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
     }
   }
 
-  "PUT to /game/{id}" should "update the score when called with which player won the last point" in {
+  "POST to /game/{id}" should "update the score when called with which player won the last point" in {
     val createResp = Post("/game", goodRequest) ~> tennisRoutes ~> check {
       responseAs[NewGameResponse]
     }
     val req = UpdateScoreRequest(player1)
-    Put("/game/" + createResp.id, req) ~> tennisRoutes ~> check {
+    Post("/game/" + createResp.id, req) ~> tennisRoutes ~> check {
       status should be(StatusCodes.OK)
       contentType should be(ContentTypes.`application/json`)
       val resp = responseAs[UpdateScoreResponse]
@@ -58,7 +58,7 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
     val set = TennisSet(List(game1))
     var score = TennisScore(List(set))
     (1 to MIN_SCORES_PER_MATCH * MIN_WIN_IN_SET * MIN_WIN_IN_GAME).foreach { idx =>
-      Put("/game/" + createResp.id, req) ~> tennisRoutes
+      Post("/game/" + createResp.id, req) ~> tennisRoutes
     }
     Get("/game/" + createResp.id) ~> tennisRoutes ~> check {
       status should be(StatusCodes.OK)
@@ -71,7 +71,7 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
 
   it should "return 404 when the id was not found" in {
     val req = UpdateScoreRequest(player1)
-    Put("/game/" + randomId, req) ~> sealRoute(tennisRoutes) ~> check {
+    Post("/game/" + randomId, req) ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.NotFound)
     }
   }
@@ -81,13 +81,13 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
       responseAs[NewGameResponse]
     }
     val req = UpdateScoreRequest(Player("random name"))
-    Put("/game/" + createResp.id, req) ~> sealRoute(tennisRoutes) ~> check {
+    Post("/game/" + createResp.id, req) ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.NotFound)
     }
   }
 
   it should "return 400 for a bad request format" in {
-    Put("/game/" + randomId, "hello") ~> sealRoute(tennisRoutes) ~> check {
+    Post("/game/" + randomId, "hello") ~> sealRoute(tennisRoutes) ~> check {
       status should be(StatusCodes.BadRequest)
     }
   }
@@ -98,7 +98,7 @@ class TennisHttpServiceSpec extends FlatSpec with ScalatestRouteTest with Tennis
       responseAs[NewGameResponse]
     }
 
-    Put("/game/" + createResp.id, UpdateScoreRequest(player1)) ~> tennisRoutes
+    Post("/game/" + createResp.id, UpdateScoreRequest(player1)) ~> tennisRoutes
 
     Get("/game/" + createResp.id) ~> tennisRoutes ~> check {
       status should be(StatusCodes.OK)
